@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { width: 300px; padding: 15px; font-family: Arial; }
+    .status { margin: 10px 0; padding: 10px; border-radius: 5px; }
+    .ready { background: #e8f5e9; }
+    .active { background: #fff3e0; }
+    .warning { background: #ffebee; }
+    button { 
+      padding: 10px; width: 100%; margin: 8px 0; 
+      border: none; border-radius: 5px; font-weight: bold;
+      cursor: pointer;
+    }
+    #startBtn { background: #2e7d32; color: white; }
+    #stopBtn { background: #c62828; color: white; }
+    #settingsBtn { background: #455a64; color: white; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div id="status" class="status ready">Ready to start</div>
+  <div id="warning" class="status warning hidden">
+    Cloudflare challenge detected! Please solve manually.
+  </div>
+  
+  <button id="startBtn">Start</button>
+  <button id="stopBtn" disabled>Stop</button>
+  <button id="settingsBtn">Settings</button>
+  
+  <div id="settingsPanel" class="hidden">
+    <h3>Settings</h3>
+    <label>
+      Start Page:
+      <input type="number" id="startPage" min="1" value="1">
+    </label>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

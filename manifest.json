@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Securitytrails-subd",
+  "version": "1.0",
+  "description": "Handles Cloudflare-protected page navigation",
+  "permissions": ["tabs", "webNavigation", "scripting", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "host_permissions": [
+    "*://*.securitytrails.com/*"
+  ]
+}
