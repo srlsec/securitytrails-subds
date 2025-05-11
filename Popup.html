@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SecurityTrails-Subds by srlsec</title>
+  <style>
+    body {
+      width: 350px;
+      padding: 15px;
+      font-family: Arial;
+    }
+    .status {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .ready { background: #e8f5e9; }
+    .active { background: #fff3e0; }
+    .warning { background: #ffebee; }
+    button {
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #startBtn { background: #2e7d32; color: white; }
+    #stopBtn { background: #c62828; color: white; }
+    #settingsBtn { background: #455a64; color: white; }
+    #extractBtn { background: #1565c0; color: white; }
+    .hidden { display: none; }
+    .flex-row { display: flex; gap: 10px; }
+    .flex-row button { flex: 1; }
+    ul {
+      list-style-type: square;
+      list-style-position: outside;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h3>Subdomain Scanner Pro</h3>
+  
+  <div id="status" class="status ready">Ready to start</div>
+  <div id="warning" class="status warning hidden">
+    Cloudflare challenge detected! Please solve manually.
+  </div>
+
+  <input type="text" id="domainInput" placeholder="example.com">
+  
+  <div class="flex-row">
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+  
+  <div class="flex-row">
+    <button id="extractBtn">Extract</button>
+    <button id="settingsBtn">Settings</button>
+  </div>
+
+  <div id="settingsPanel" class="hidden">
+    <h3>Settings</h3>
+    <label>
+      Start Page:
+      <input type="number" id="startPage" min="1" value="1">
+    </label>
+  </div>
+
+  <p>Extracted Subdomains (<span id="subdomainCount">0</span>):</p>
+  <ul id="subdomainList"></ul>
+
+  <div class="flex-row">
+    <button id="saveButton">Save</button>
+    <button id="copyButton">Copy</button>
+    <button id="clearButton">Clear</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,48 +1,30 @@
 let isActive = false;
 let currentTabId = null;
 let currentPage = 1;
-const minDelay = 15000; // 15 seconds minimum between requests
-const maxDelay = 30000; // 30 seconds maximum
+const minDelay = 15000;
+const maxDelay = 30000;
 let lastRequestTime = 0;
 
-// Random delay to mimic human behavior
-function getRandomDelay() {
-  return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-}
-
-// Check for Cloudflare challenges
-function checkForCloudflare(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript({
-      target: {tabId: tabId},
-      func: () => {
-        // Check for Cloudflare challenge elements
-        return !!document.querySelector('#challenge-form, .cf-challenge, .ray_id');
-      }
-    }, (results) => {
-      resolve(results && results[0] && results[0].result);
-    });
-  });
-}
-
-// Main navigation handler
-async function handleNavigation(tabId, url) {
+// Combined functionality
+async function handleNavigation(tabId, url, domain) {
   if (!isActive) return;
 
+  // Add delay between requests
   const now = Date.now();
   const timeSinceLastRequest = now - lastRequestTime;
   const requiredDelay = getRandomDelay();
 
-  // Wait if needed to space out requests
   if (timeSinceLastRequest < requiredDelay) {
-    const remainingDelay = requiredDelay - timeSinceLastRequest;
-    await new Promise(resolve => setTimeout(resolve, remainingDelay));
+    await new Promise(resolve => setTimeout(resolve, requiredDelay - timeSinceLastRequest));
   }
 
-  // Update URL with current page
-  const urlObj = new URL(url);
-  urlObj.searchParams.set('page', currentPage);
-  const targetUrl = urlObj.toString();
+  // Update URL with current page if it's securitytrails.com
+  let targetUrl = url;
+  if (url.includes('securitytrails.com')) {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set('page', currentPage);
+    targetUrl = urlObj.toString();
+  }
 
   // Navigate to the page
   lastRequestTime = Date.now();
@@ -62,27 +44,83 @@ async function handleNavigation(tabId, url) {
   // Check for Cloudflare challenge
   const hasChallenge = await checkForCloudflare(tabId);
   if (hasChallenge) {
-    await chrome.tabs.sendMessage(tabId, {action: "showCaptchaWarning"});
+    await chrome.runtime.sendMessage({action: "showCaptchaWarning"});
     isActive = false;
     return;
   }
 
-  // If everything is okay, increment page
-  currentPage++;
-  handleNavigation(tabId, url);
+  // Extract subdomains if domain is specified
+  if (domain) {
+    await extractSubdomains(tabId, domain);
+  }
+
+  // If on securitytrails.com, increment page and continue
+  if (url.includes('securitytrails.com')) {
+    currentPage++;
+    handleNavigation(tabId, url, domain);
+  }
+}
+
+// Extract subdomains from page
+async function extractSubdomains(tabId, domain) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: {tabId},
+      func: (domain) => {
+        const regex = new RegExp(`(?:[a-zA-Z0-9-]+\\.)+${domain.replace(/\./g, "\\.")}`, "gi");
+        return [...new Set([...document.documentElement.innerHTML.matchAll(regex)].map(m => m[0].replace(/^\/\//, "")))];
+      },
+      args: [domain]
+    });
+
+    if (results && results[0] && results[0].result) {
+      const data = await chrome.storage.local.get(["subdomains"]);
+      let storedSubdomains = new Set(data.subdomains || []);
+      results[0].result.forEach(sub => storedSubdomains.add(sub));
+      await chrome.storage.local.set({ subdomains: [...storedSubdomains] });
+      await chrome.runtime.sendMessage({
+        action: "updateCount",
+        count: storedSubdomains.size
+      });
+    }
+  } catch (error) {
+    console.error("Subdomain extraction error:", error);
+  }
+}
+
+// Cloudflare check (unchanged)
+function checkForCloudflare(tabId) {
+  return new Promise((resolve) => {
+    chrome.scripting.executeScript({
+      target: {tabId},
+      func: () => !!document.querySelector('#challenge-form, .cf-challenge, .ray_id')
+    }, (results) => resolve(results && results[0] && results[0].result));
+  });
 }
 
 // Message handling
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "start") {
-    isActive = true;
-    currentTabId = request.tabId;
-    currentPage = request.startPage || 1;
-    handleNavigation(request.tabId, request.url);
-  }
-  else if (request.action === "stop") {
-    isActive = false;
-    currentTabId = null;
+  switch (request.action) {
+    case "start":
+      isActive = true;
+      currentTabId = request.tabId;
+      currentPage = request.startPage || 1;
+      handleNavigation(request.tabId, request.url, request.domain);
+      break;
+    case "stop":
+      isActive = false;
+      currentTabId = null;
+      break;
+    case "extract":
+      if (currentTabId) {
+        extractSubdomains(currentTabId, request.domain);
+      }
+      break;
   }
   sendResponse({success: true});
 });
+
+// Random delay function (unchanged)
+function getRandomDelay() {
+  return Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+}

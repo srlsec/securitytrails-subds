@@ -1,16 +1,36 @@
 {
   "manifest_version": 3,
-  "name": "Securitytrails-subd",
+  "name": "SecurityTrails-Subds",
   "version": "1.0",
-  "description": "Handles Cloudflare-protected page navigation",
-  "permissions": ["tabs", "webNavigation", "scripting", "storage"],
+  "description": "Extracts subdomains from securitytrails",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "downloads",
+    "webNavigation",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "*://*.securitytrails.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
   },
-  "host_permissions": [
-    "*://*.securitytrails.com/*"
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
   ]
 }
