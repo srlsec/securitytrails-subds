@@ -1,6 +1,6 @@
 # SecurityTrails-Subdscraper
 
-*Advanced subdomain discovery tool with Cloudflare protection bypass*
+*SecurityTrails-Subdscraper is a Chrome extension that automates subdomain discovery from web pages while intelligently handling pagination and Cloudflare challenges. It's designed for security professionals and researchers.*
 
 ## Features
 
