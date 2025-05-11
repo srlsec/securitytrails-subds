@@ -1,6 +1,5 @@
 # SecurityTrails-Subdscraper
 
-![Extension Logo](icon.png)  
 *Advanced subdomain discovery tool with Cloudflare protection bypass*
 
 ## Features
