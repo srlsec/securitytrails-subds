@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "SecurityTrails-Subds",
+  "name": "SecurityTrails-SubdScraper",
   "version": "1.0",
   "description": "Extracts subdomains from securitytrails",
   "permissions": [
